@@ -1,0 +1,26 @@
+{
+  "name": "shazzoo/contact-form-plugin",
+  "description": "Contact form block for Content Studio Core: stores submissions and mails them to a recipient.",
+  "type": "content-studio-plugin",
+  "license": "MIT",
+  "require": {
+    "php": "^8.3",
+    "shazzoo/content-studio-core": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Shazzoo\\ContactForm\\": "src/"
+    }
+  },
+  "extra": {
+    "content-studio": {
+      "key": "shazzoo/contact-form",
+      "slug": "contact-form",
+      "name": "Contact Form",
+      "description": "A contact form block that stores submissions and mails them to a recipient.",
+      "provider": "Shazzoo\\ContactForm\\ContactFormServiceProvider"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
