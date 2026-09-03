@@ -2,6 +2,7 @@
 
 namespace Shazzoo\ContactForm;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Shazzoo\ContactForm\Http\Controllers\ContactSubmissionController;
@@ -35,6 +36,12 @@ class ContactFormServiceProvider extends ServiceProvider
         $this->publishes([
             $base.'/config/contact-form.php' => config_path('contact-form.php'),
         ], 'contact-form-config');
+
+        // De BlockResolver zoekt "<slug>::blocks.<handle>", maar PluginLoader
+        // leidt het component-alias af van de mapnaam -- in vendor/ is dat
+        // "contact-form-plugin". Zelf registreren houdt de slug uit plugin.json
+        // leidend, of de plugin nu in app/Plugins of in vendor/ staat.
+        Blade::componentNamespace('Shazzoo\\ContactForm\\View\\Components', 'contact-form');
 
         Route::middleware('web')->group(function (): void {
             Route::post('/contact-form/submit', ContactSubmissionController::class)
