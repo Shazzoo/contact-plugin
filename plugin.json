@@ -1,8 +1,8 @@
 {
   "key": "shazzoo/contact-form",
   "slug": "contact-form",
-  "name": "Contact Form",
-  "description": "A contact form block that stores submissions and mails them to a recipient.",
+  "name": "Contact Plugin",
+  "description": "A contact form block; fields, recipient and copy are configured in the admin.",
   "author": "Shazzoo",
   "provider": "Shazzoo\\ContactForm\\ContactFormServiceProvider",
   "class": "Shazzoo\\ContactForm\\Plugin"

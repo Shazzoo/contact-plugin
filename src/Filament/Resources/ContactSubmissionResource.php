@@ -10,19 +10,24 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Shazzoo\ContactForm\Filament\Resources\ContactSubmissionResource\Pages;
+use Shazzoo\ContactForm\Models\ContactFormSetting;
 use Shazzoo\ContactForm\Models\ContactSubmission;
 
 class ContactSubmissionResource extends Resource
 {
     protected static ?string $model = ContactSubmission::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-inbox';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Plugins';
+    protected static string|\UnitEnum|null $navigationGroup = 'Contact Plugin';
 
-    protected static ?string $label = 'Contact submission';
+    protected static ?int $navigationSort = 20;
 
-    protected static ?string $pluralLabel = 'Contact submissions';
+    protected static ?string $navigationLabel = 'Inzendingen';
+
+    protected static ?string $label = 'Inzending';
+
+    protected static ?string $pluralLabel = 'Inzendingen';
 
     /** Submissions come from visitors; the admin only reads and deletes them. */
     public static function canCreate(): bool
@@ -33,15 +38,19 @@ class ContactSubmissionResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->schema([
-            Infolists\Components\TextEntry::make('name'),
-            Infolists\Components\TextEntry::make('email')->copyable(),
-            Infolists\Components\TextEntry::make('phone')->placeholder('—'),
-            Infolists\Components\TextEntry::make('subject')->placeholder('—'),
-            Infolists\Components\TextEntry::make('message')->columnSpanFull(),
-            Infolists\Components\TextEntry::make('page_url')->placeholder('—')->columnSpanFull(),
-            Infolists\Components\TextEntry::make('locale')->placeholder('—'),
-            Infolists\Components\TextEntry::make('ip_address')->placeholder('—'),
-            Infolists\Components\TextEntry::make('created_at')->dateTime(),
+            Infolists\Components\KeyValueEntry::make('data')
+                ->label('Antwoorden')
+                ->keyLabel('Veld')
+                ->valueLabel('Antwoord')
+                ->state(fn (ContactSubmission $record): array => $record->labelledAnswers(
+                    ContactFormSetting::singleton()->usableFields(),
+                ))
+                ->columnSpanFull(),
+
+            Infolists\Components\TextEntry::make('page_url')->label('Pagina')->placeholder('—')->columnSpanFull(),
+            Infolists\Components\TextEntry::make('locale')->label('Taal')->placeholder('—'),
+            Infolists\Components\TextEntry::make('ip_address')->label('IP')->placeholder('—'),
+            Infolists\Components\TextEntry::make('created_at')->label('Ontvangen')->dateTime(),
         ]);
     }
 
@@ -50,11 +59,20 @@ class ContactSubmissionResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')->label('Received')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('subject')->searchable()->limit(40)->placeholder('—'),
-                Tables\Columns\TextColumn::make('message')->limit(60)->wrap(),
+                Tables\Columns\TextColumn::make('created_at')->label('Ontvangen')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('name')->label('Naam')->searchable()->sortable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('email')->label('E-mail')->searchable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('subject')->label('Onderwerp')->searchable()->limit(40)->placeholder('—'),
+
+                // De overige antwoorden verschillen per formulier, dus die vat
+                // een enkele kolom samen in plaats van een kolom per veld.
+                Tables\Columns\TextColumn::make('data')
+                    ->label('Antwoorden')
+                    ->limit(60)
+                    ->wrap()
+                    ->state(fn (ContactSubmission $record): string => collect($record->labelledAnswers(
+                        ContactFormSetting::singleton()->usableFields(),
+                    ))->map(fn ($value, $label): string => $label.': '.$value)->implode(' · ')),
             ])
             ->actions([
                 ViewAction::make(),

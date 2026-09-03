@@ -14,20 +14,37 @@ class ContactSubmissionReceived extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public ContactSubmission $submission) {}
+    /**
+     * @param  array<int, array<string, mixed>>  $fields
+     */
+    public function __construct(
+        public ContactSubmission $submission,
+        public array $fields = [],
+        public ?string $subjectPrefix = null,
+    ) {}
 
     public function envelope(): Envelope
     {
+        $prefix = trim((string) ($this->subjectPrefix ?: __('Contact form')));
+        $subject = $this->submission->subject
+            ? $prefix.': '.$this->submission->subject
+            : $prefix;
+
         return new Envelope(
-            subject: $this->submission->subject
-                ? __('Contact form: :subject', ['subject' => $this->submission->subject])
-                : __('New contact form submission'),
-            replyTo: [new Address($this->submission->email, $this->submission->name)],
+            subject: $subject,
+            // Alleen als het formulier een e-mailveld heeft: zonder antwoord-
+            // adres zou replyTo op een leeg adres stukgaan.
+            replyTo: $this->submission->email
+                ? [new Address($this->submission->email, $this->submission->name ?: $this->submission->email)]
+                : [],
         );
     }
 
     public function content(): Content
     {
-        return new Content(markdown: 'contact-form::mail.submission');
+        return new Content(
+            markdown: 'contact-form::mail.submission',
+            with: ['answers' => $this->submission->labelledAnswers($this->fields)],
+        );
     }
 }

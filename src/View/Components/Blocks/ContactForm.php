@@ -3,8 +3,8 @@
 namespace Shazzoo\ContactForm\View\Components\Blocks;
 
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\View\Component;
+use Shazzoo\ContactForm\Models\ContactFormSetting;
 
 class ContactForm extends Component
 {
@@ -15,15 +15,13 @@ class ContactForm extends Component
 
     public function render(): View
     {
-        $recipient = trim((string) ($this->data['recipient'] ?? ''));
+        $settings = ContactFormSetting::singleton();
 
         return view('contact-form::blocks.contact-form', [
             'data' => $this->data,
+            'settings' => $settings,
+            'fields' => $settings->usableFields(),
             'formId' => $this->editorId ?: 'contact-form',
-            /** Encrypted so the address is neither readable nor swappable in the page source. */
-            'recipientToken' => filter_var($recipient, FILTER_VALIDATE_EMAIL)
-                ? Crypt::encryptString($recipient)
-                : null,
         ]);
     }
 }

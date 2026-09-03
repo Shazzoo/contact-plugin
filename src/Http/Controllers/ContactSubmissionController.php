@@ -2,15 +2,15 @@
 
 namespace Shazzoo\ContactForm\Http\Controllers;
 
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Shazzoo\ContactForm\Mail\ContactSubmissionReceived;
+use Shazzoo\ContactForm\Models\ContactFormSetting;
 use Shazzoo\ContactForm\Models\ContactSubmission;
+use Shazzoo\ContactForm\Support\FieldTypes;
 
 class ContactSubmissionController
 {
@@ -18,69 +18,138 @@ class ContactSubmissionController
     {
         $this->ensureNotRateLimited($request);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'subject' => ['nullable', 'string', 'max:255'],
-            'message' => ['required', 'string', 'max:5000'],
-            'form_id' => ['nullable', 'string', 'max:255'],
-            'recipient' => ['nullable', 'string'],
-            /** Honeypot: only a bot fills a field that is hidden from people. */
-            'website' => ['prohibited'],
-        ]);
+        $settings = ContactFormSetting::singleton();
+        $fields = $settings->usableFields();
+
+        $validated = $request->validate(
+            [
+                'form_id' => ['nullable', 'string', 'max:255'],
+                /** Honeypot: only a bot fills a field that is hidden from people. */
+                'website' => ['prohibited'],
+                ...$this->rules($fields),
+            ],
+            [],
+            $this->attributes($fields),
+        );
+
+        $answers = $this->answers($fields, $validated);
 
         $submission = ContactSubmission::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'subject' => $data['subject'] ?? null,
-            'message' => $data['message'],
+            'data' => $answers,
+            'name' => $this->valueForRole($settings, $answers, 'name'),
+            'email' => $this->valueForRole($settings, $answers, 'email'),
+            'subject' => $this->valueForRole($settings, $answers, 'subject'),
             'page_url' => $request->headers->get('referer'),
             'locale' => app()->getLocale(),
             'ip_address' => $request->ip(),
         ]);
 
-        $recipient = $this->recipient($data['recipient'] ?? null);
+        $recipient = $this->recipient($settings);
 
         if ($recipient !== null) {
-            Mail::to($recipient)->send(new ContactSubmissionReceived($submission));
+            Mail::to($recipient)->send(new ContactSubmissionReceived($submission, $fields, $settings->subject_prefix));
         }
 
         return back()
-            ->with('contact-form.success', $data['form_id'] ?? true)
-            ->withFragment($this->fragment($data['form_id'] ?? null));
+            ->with('contact-form.success', $validated['form_id'] ?? true)
+            ->withFragment($validated['form_id'] ?? 'contact-form');
     }
 
     /**
-     * The recipient travels through the page in an encrypted hidden field, so a
-     * block can address its own mailbox without the form becoming an open relay:
-     * a tampered value fails to decrypt and falls back to the configured one.
+     * @param  array<int, array<string, mixed>>  $fields
+     * @return array<string, array<int, string>>
      */
-    private function recipient(?string $encrypted): ?string
+    private function rules(array $fields): array
     {
-        if ($encrypted !== null && $encrypted !== '') {
-            try {
-                $decrypted = Crypt::decryptString($encrypted);
+        $rules = [];
 
-                if (filter_var($decrypted, FILTER_VALIDATE_EMAIL)) {
-                    return $decrypted;
-                }
-            } catch (DecryptException) {
-                // Fall through to the configured recipient.
+        foreach ($fields as $field) {
+            $key = 'fields.'.$field['name'];
+            $required = (bool) ($field['required'] ?? false);
+
+            if (($field['type'] ?? null) === FieldTypes::CHECKBOX) {
+                $rules[$key] = $required ? ['accepted'] : ['nullable'];
+
+                continue;
+            }
+
+            $rules[$key] = [$required ? 'required' : 'nullable', ...FieldTypes::rulesFor($field)];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Error messages read "Het bericht veld is verplicht", not "fields.message".
+     *
+     * @param  array<int, array<string, mixed>>  $fields
+     * @return array<string, string>
+     */
+    private function attributes(array $fields): array
+    {
+        $attributes = [];
+
+        foreach ($fields as $field) {
+            $attributes['fields.'.$field['name']] = (string) ($field['label'] ?? $field['name']);
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Answers keyed by field name, dropped to the configured fields, so a
+     * renamed or removed field cannot smuggle extra keys into the database.
+     *
+     * @param  array<int, array<string, mixed>>  $fields
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function answers(array $fields, array $validated): array
+    {
+        $answers = [];
+
+        foreach ($fields as $field) {
+            $value = $validated['fields'][$field['name']] ?? null;
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            if (($field['type'] ?? null) === FieldTypes::CHECKBOX) {
+                $value = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'Ja' : 'Nee';
+            }
+
+            $answers[$field['name']] = $value;
+        }
+
+        return $answers;
+    }
+
+    /**
+     * @param  array<string, mixed>  $answers
+     */
+    private function valueForRole(ContactFormSetting $settings, array $answers, string $role): ?string
+    {
+        $field = $settings->fieldWithRole($role);
+
+        if ($field === null) {
+            return null;
+        }
+
+        $value = $answers[$field['name']] ?? null;
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    private function recipient(ContactFormSetting $settings): ?string
+    {
+        foreach ([$settings->recipient, config('contact-form.recipient')] as $candidate) {
+            if (is_string($candidate) && filter_var($candidate, FILTER_VALIDATE_EMAIL)) {
+                return $candidate;
             }
         }
 
-        $fallback = config('contact-form.recipient');
-
-        return is_string($fallback) && filter_var($fallback, FILTER_VALIDATE_EMAIL)
-            ? $fallback
-            : null;
-    }
-
-    private function fragment(?string $formId): string
-    {
-        return $formId !== null && $formId !== '' ? $formId : 'contact-form';
+        return null;
     }
 
     private function ensureNotRateLimited(Request $request): void
@@ -90,7 +159,7 @@ class ContactSubmissionController
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             throw ValidationException::withMessages([
-                'message' => __('Too many submissions. Please try again later.'),
+                'contact-form' => __('Too many submissions. Please try again later.'),
             ]);
         }
 
