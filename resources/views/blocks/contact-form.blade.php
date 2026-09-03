@@ -56,7 +56,12 @@
                 <div class="cf-grid">
                     @foreach ($fields as $field)
                         @php
+                            // De puntsleutel is voor validatie, old() en @error;
+                            // het name-attribuut moet haakjes gebruiken, anders
+                            // komt het antwoord als losse sleutel binnen in
+                            // plaats van in de fields-array.
                             $key = 'fields.'.$field['name'];
+                            $inputName = 'fields['.$field['name'].']';
                             $id = $formId.'-'.$field['name'];
                             $type = $field['type'] ?? 'text';
                         @endphp
@@ -64,7 +69,7 @@
                         <div class="cf-field cf-field-{{ ($field['width'] ?? 'full') === 'half' ? 'half' : 'full' }}">
                             @includeFirst(
                                 ['contact-form::fields.'.$type, 'contact-form::fields.text'],
-                                ['field' => $field, 'key' => $key, 'id' => $id]
+                                ['field' => $field, 'key' => $key, 'inputName' => $inputName, 'id' => $id]
                             )
 
                             @error($key)
