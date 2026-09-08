@@ -1,5 +1,5 @@
 <x-mail::message>
-# {{ __('New contact form submission') }}
+# {{ __('contact-form::messages.mail.heading') }}
 
 @foreach ($answers as $label => $value)
 **{{ $label }}:** {{ $value }}
@@ -7,6 +7,6 @@
 @endforeach
 @if ($submission->page_url)
 ---
-{{ __('Page') }}: {{ $submission->page_url }}
+{{ __('contact-form::messages.mail.page') }}: {{ $submission->page_url }}
 @endif
 </x-mail::message>

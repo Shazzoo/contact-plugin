@@ -19,15 +19,27 @@ class ContactSubmissionResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-inbox';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Contact Plugin';
-
     protected static ?int $navigationSort = 20;
 
-    protected static ?string $navigationLabel = 'Inzendingen';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return (string) __('contact-form::messages.admin.group');
+    }
 
-    protected static ?string $label = 'Inzending';
+    public static function getNavigationLabel(): string
+    {
+        return (string) __('contact-form::messages.admin.submissions.nav');
+    }
 
-    protected static ?string $pluralLabel = 'Inzendingen';
+    public static function getModelLabel(): string
+    {
+        return (string) __('contact-form::messages.admin.submissions.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return (string) __('contact-form::messages.admin.submissions.plural');
+    }
 
     /** Submissions come from visitors; the admin only reads and deletes them. */
     public static function canCreate(): bool
@@ -39,18 +51,18 @@ class ContactSubmissionResource extends Resource
     {
         return $schema->schema([
             Infolists\Components\KeyValueEntry::make('data')
-                ->label('Antwoorden')
-                ->keyLabel('Veld')
-                ->valueLabel('Antwoord')
+                ->label(__('contact-form::messages.admin.submissions.answers'))
+                ->keyLabel(__('contact-form::messages.admin.submissions.answer_field'))
+                ->valueLabel(__('contact-form::messages.admin.submissions.answer_value'))
                 ->state(fn (ContactSubmission $record): array => $record->labelledAnswers(
                     ContactFormSetting::singleton()->usableFields(),
                 ))
                 ->columnSpanFull(),
 
-            Infolists\Components\TextEntry::make('page_url')->label('Pagina')->placeholder('—')->columnSpanFull(),
-            Infolists\Components\TextEntry::make('locale')->label('Taal')->placeholder('—'),
-            Infolists\Components\TextEntry::make('ip_address')->label('IP')->placeholder('—'),
-            Infolists\Components\TextEntry::make('created_at')->label('Ontvangen')->dateTime(),
+            Infolists\Components\TextEntry::make('page_url')->label(__('contact-form::messages.admin.submissions.page'))->placeholder('—')->columnSpanFull(),
+            Infolists\Components\TextEntry::make('locale')->label(__('contact-form::messages.admin.submissions.locale'))->placeholder('—'),
+            Infolists\Components\TextEntry::make('ip_address')->label(__('contact-form::messages.admin.submissions.ip'))->placeholder('—'),
+            Infolists\Components\TextEntry::make('created_at')->label(__('contact-form::messages.admin.submissions.received'))->dateTime(),
         ]);
     }
 
@@ -59,15 +71,15 @@ class ContactSubmissionResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')->label('Ontvangen')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('name')->label('Naam')->searchable()->sortable()->placeholder('—'),
-                Tables\Columns\TextColumn::make('email')->label('E-mail')->searchable()->placeholder('—'),
-                Tables\Columns\TextColumn::make('subject')->label('Onderwerp')->searchable()->limit(40)->placeholder('—'),
+                Tables\Columns\TextColumn::make('created_at')->label(__('contact-form::messages.admin.submissions.received'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('name')->label(__('contact-form::messages.admin.submissions.name'))->searchable()->sortable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('email')->label(__('contact-form::messages.admin.submissions.email'))->searchable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('subject')->label(__('contact-form::messages.admin.submissions.subject'))->searchable()->limit(40)->placeholder('—'),
 
                 // De overige antwoorden verschillen per formulier, dus die vat
                 // een enkele kolom samen in plaats van een kolom per veld.
                 Tables\Columns\TextColumn::make('data')
-                    ->label('Antwoorden')
+                    ->label(__('contact-form::messages.admin.submissions.answers'))
                     ->limit(60)
                     ->wrap()
                     ->state(fn (ContactSubmission $record): string => collect($record->labelledAnswers(

@@ -2,10 +2,14 @@
 
 namespace Shazzoo\ContactForm\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 
 class ContactSubmission extends Model
 {
+    use Prunable;
+
     protected $table = 'contact_submissions';
 
     protected $fillable = [
@@ -25,6 +29,21 @@ class ContactSubmission extends Model
             'data' => 'array',
             'read_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Submissions older than the retention window, deleted for good by the
+     * daily prune the service provider schedules. Zero days keeps everything.
+     */
+    public function prunable(): Builder
+    {
+        $days = (int) config('contact-form.retention_days', 0);
+
+        // Nul betekent bewaren, ook als iemand model:prune met de hand draait:
+        // zonder deze grens zou "ouder dan nul dagen" alles opruimen.
+        return $days > 0
+            ? static::query()->where('created_at', '<', now()->subDays($days))
+            : static::query()->whereRaw('1 = 0');
     }
 
     /**

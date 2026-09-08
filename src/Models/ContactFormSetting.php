@@ -23,9 +23,10 @@ class ContactFormSetting extends Model
 
     public static function singleton(): self
     {
+        // Leeg gelaten: de vertaling van de actieve taal is de terugval bij
+        // het renderen, dus een lege waarde volgt de taal van de bezoeker mee
+        // tot iemand in de admin eigen tekst invult.
         return static::query()->firstOrCreate([], [
-            'button_label' => 'Versturen',
-            'success_message' => 'Bedankt voor je bericht. We nemen zo snel mogelijk contact op.',
             'fields' => self::defaultFields(),
         ]);
     }
@@ -39,10 +40,10 @@ class ContactFormSetting extends Model
     public static function defaultFields(): array
     {
         return [
-            ['name' => 'name', 'label' => 'Naam', 'type' => 'text', 'role' => 'name', 'required' => true, 'width' => 'half'],
-            ['name' => 'email', 'label' => 'E-mail', 'type' => 'email', 'role' => 'email', 'required' => true, 'width' => 'half'],
-            ['name' => 'subject', 'label' => 'Onderwerp', 'type' => 'text', 'role' => 'subject', 'required' => false, 'width' => 'full'],
-            ['name' => 'message', 'label' => 'Bericht', 'type' => 'textarea', 'role' => 'none', 'required' => true, 'width' => 'full'],
+            ['name' => 'name', 'label' => (string) __('contact-form::messages.defaults.name'), 'type' => 'text', 'role' => 'name', 'required' => true, 'width' => 'half'],
+            ['name' => 'email', 'label' => (string) __('contact-form::messages.defaults.email'), 'type' => 'email', 'role' => 'email', 'required' => true, 'width' => 'half'],
+            ['name' => 'subject', 'label' => (string) __('contact-form::messages.defaults.subject'), 'type' => 'text', 'role' => 'subject', 'required' => false, 'width' => 'full'],
+            ['name' => 'message', 'label' => (string) __('contact-form::messages.defaults.message'), 'type' => 'textarea', 'role' => 'none', 'required' => true, 'width' => 'full'],
         ];
     }
 

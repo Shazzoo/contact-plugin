@@ -29,7 +29,7 @@
         @endif
 
         @if ($succeeded)
-            <p class="cf-success">{{ $settings->success_message ?: __('Thanks for your message.') }}</p>
+            <p class="cf-success">{{ $settings->success_message ?: __('contact-form::messages.form.success') }}</p>
         @endif
 
         @error('contact-form')
@@ -39,7 +39,7 @@
         @if (empty($fields))
             {{-- Niets te tonen zolang er geen velden ingesteld zijn. --}}
             @if (auth()->check())
-                <p class="cf-note">{{ __('No form fields configured yet. Set them up under Contact Plugin.') }}</p>
+                <p class="cf-note">{{ __('contact-form::messages.form.not_configured') }}</p>
             @endif
         @else
             <form class="cf-form" method="POST" action="{{ route('contact-form.submit') }}">
@@ -48,7 +48,7 @@
 
                 <div class="cf-honeypot" aria-hidden="true">
                     <label>
-                        {{ __('Leave this field empty') }}
+                        {{ __('contact-form::messages.form.honeypot') }}
                         <input type="text" name="website" tabindex="-1" autocomplete="off">
                     </label>
                 </div>
@@ -83,7 +83,7 @@
                     <p class="cf-note">{{ $settings->privacy_note }}</p>
                 @endif
 
-                <button class="cf-button" type="submit">{{ $settings->button_label ?: __('Send') }}</button>
+                <button class="cf-button" type="submit">{{ $settings->button_label ?: __('contact-form::messages.form.send') }}</button>
             </form>
         @endif
     </div>

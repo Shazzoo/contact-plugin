@@ -21,17 +21,26 @@ class ContactFormSettingsPage extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static ?string $navigationLabel = 'Formulier';
-
-    protected static string|\UnitEnum|null $navigationGroup = 'Contact Plugin';
-
     protected static ?int $navigationSort = 10;
-
-    protected static ?string $title = 'Contactformulier';
 
     protected string $view = 'contact-form::filament.pages.settings';
 
     public ?array $data = [];
+
+    public static function getNavigationLabel(): string
+    {
+        return (string) __('contact-form::messages.admin.settings.nav');
+    }
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return (string) __('contact-form::messages.admin.group');
+    }
+
+    public function getTitle(): string
+    {
+        return (string) __('contact-form::messages.admin.settings.title');
+    }
 
     public function mount(): void
     {
@@ -42,41 +51,42 @@ class ContactFormSettingsPage extends Page
     {
         return $form
             ->schema([
-                Section::make('Verzending')
-                    ->description('Waar een inzending naartoe gaat en wat de bezoeker daarna ziet.')
+                Section::make(__('contact-form::messages.admin.settings.delivery'))
+                    ->description(__('contact-form::messages.admin.settings.delivery_hint'))
                     ->columns(2)
                     ->schema([
                         TextInput::make('recipient')
-                            ->label('Ontvanger')
+                            ->label(__('contact-form::messages.admin.settings.recipient'))
                             ->email()
-                            ->helperText('Leeg laten gebruikt CONTACT_FORM_RECIPIENT uit de .env.'),
+                            ->helperText(__('contact-form::messages.admin.settings.recipient_hint')),
 
                         TextInput::make('subject_prefix')
-                            ->label('Onderwerp-prefix')
-                            ->placeholder('Contactformulier')
-                            ->helperText('Komt voor het onderwerp in de notificatiemail.'),
+                            ->label(__('contact-form::messages.admin.settings.subject_prefix'))
+                            ->placeholder(__('contact-form::messages.mail.subject'))
+                            ->helperText(__('contact-form::messages.admin.settings.subject_prefix_hint')),
 
                         TextInput::make('button_label')
-                            ->label('Label van de knop')
-                            ->default('Versturen'),
+                            ->label(__('contact-form::messages.admin.settings.button_label'))
+                            ->placeholder(__('contact-form::messages.form.send')),
 
                         Textarea::make('success_message')
-                            ->label('Bedanktbericht')
+                            ->label(__('contact-form::messages.admin.settings.success_message'))
+                            ->placeholder(__('contact-form::messages.form.success'))
                             ->rows(2),
 
                         Textarea::make('privacy_note')
-                            ->label('Privacytekst')
+                            ->label(__('contact-form::messages.admin.settings.privacy_note'))
                             ->rows(2)
                             ->columnSpanFull()
-                            ->helperText('Optionele tekst onder het formulier.'),
+                            ->helperText(__('contact-form::messages.admin.settings.privacy_note_hint')),
                     ]),
 
-                Section::make('Velden')
-                    ->description('De velden van het formulier. De volgorde hier is de volgorde op de pagina.')
+                Section::make(__('contact-form::messages.admin.settings.fields'))
+                    ->description(__('contact-form::messages.admin.settings.fields_hint'))
                     ->schema([
                         Repeater::make('fields')
                             ->hiddenLabel()
-                            ->addActionLabel('Veld toevoegen')
+                            ->addActionLabel(__('contact-form::messages.admin.settings.add_field'))
                             ->reorderable()
                             ->collapsible()
                             ->itemLabel(fn (array $state): ?string => $state['label'] ?? $state['name'] ?? null)
@@ -84,7 +94,7 @@ class ContactFormSettingsPage extends Page
                             ->columns(2)
                             ->schema([
                                 TextInput::make('label')
-                                    ->label('Label')
+                                    ->label(__('contact-form::messages.admin.settings.field_label'))
                                     ->required()
                                     ->live(onBlur: true)
                                     // Vult de sleutel bij een nieuw veld, zonder
@@ -97,42 +107,45 @@ class ContactFormSettingsPage extends Page
                                     }),
 
                                 TextInput::make('name')
-                                    ->label('Sleutel')
+                                    ->label(__('contact-form::messages.admin.settings.field_key'))
                                     ->required()
                                     ->alphaDash()
-                                    ->helperText('Wordt opgeslagen bij de inzending. Wijzig dit niet meer als er al inzendingen zijn.'),
+                                    ->helperText(__('contact-form::messages.admin.settings.field_key_hint')),
 
                                 Select::make('type')
-                                    ->label('Type')
+                                    ->label(__('contact-form::messages.admin.settings.field_type'))
                                     ->options(FieldTypes::options())
                                     ->default(FieldTypes::TEXT)
                                     ->required()
                                     ->live(),
 
                                 Select::make('role')
-                                    ->label('Rol')
+                                    ->label(__('contact-form::messages.admin.settings.field_role'))
                                     ->options(FieldTypes::roleOptions())
                                     ->default('none')
-                                    ->helperText('Bepaalt het antwoord-adres en de kolommen in het overzicht.'),
+                                    ->helperText(__('contact-form::messages.admin.settings.field_role_hint')),
 
                                 Textarea::make('options')
-                                    ->label('Keuzes')
+                                    ->label(__('contact-form::messages.admin.settings.field_choices'))
                                     ->rows(4)
                                     ->columnSpanFull()
-                                    ->helperText('Een keuze per regel.')
+                                    ->helperText(__('contact-form::messages.admin.settings.field_choices_hint'))
                                     ->visible(fn (Get $get): bool => $get('type') === FieldTypes::SELECT),
 
                                 TextInput::make('placeholder')
-                                    ->label('Placeholder')
+                                    ->label(__('contact-form::messages.admin.settings.field_placeholder'))
                                     ->visible(fn (Get $get): bool => ! in_array($get('type'), [FieldTypes::CHECKBOX, FieldTypes::SELECT], true)),
 
                                 Select::make('width')
-                                    ->label('Breedte')
-                                    ->options(['full' => 'Hele breedte', 'half' => 'Halve breedte'])
+                                    ->label(__('contact-form::messages.admin.settings.field_width'))
+                                    ->options([
+                                        'full' => __('contact-form::messages.admin.settings.field_width_full'),
+                                        'half' => __('contact-form::messages.admin.settings.field_width_half'),
+                                    ])
                                     ->default('full'),
 
                                 Toggle::make('required')
-                                    ->label('Verplicht')
+                                    ->label(__('contact-form::messages.admin.settings.field_required'))
                                     ->default(false),
                             ]),
                     ]),
@@ -147,7 +160,7 @@ class ContactFormSettingsPage extends Page
         $model->save();
 
         Notification::make()
-            ->title('Contactformulier opgeslagen')
+            ->title(__('contact-form::messages.admin.settings.saved'))
             ->success()
             ->send();
     }
@@ -156,13 +169,13 @@ class ContactFormSettingsPage extends Page
     {
         return [
             Action::make('save')
-                ->label('Opslaan')
+                ->label(__('contact-form::messages.admin.settings.save'))
                 ->icon('heroicon-o-check')
                 ->keyBindings(['mod+s'])
                 ->action('save'),
 
             Action::make('restoreDefaults')
-                ->label('Standaardvelden terugzetten')
+                ->label(__('contact-form::messages.admin.settings.restore'))
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('gray')
                 ->requiresConfirmation()

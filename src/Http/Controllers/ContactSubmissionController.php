@@ -41,7 +41,9 @@ class ContactSubmissionController
             'subject' => $this->valueForRole($settings, $answers, 'subject'),
             'page_url' => $request->headers->get('referer'),
             'locale' => app()->getLocale(),
-            'ip_address' => $request->ip(),
+            // Alleen als de site het bewust aanzet: een IP-adres is
+            // persoonsgegeven en is niet nodig om een bericht te beantwoorden.
+            'ip_address' => config('contact-form.store_ip') ? $request->ip() : null,
         ]);
 
         $recipient = $this->recipient($settings);
@@ -116,7 +118,7 @@ class ContactSubmissionController
             }
 
             if (($field['type'] ?? null) === FieldTypes::CHECKBOX) {
-                $value = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'Ja' : 'Nee';
+                $value = (string) __('contact-form::messages.form.'.(filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no'));
             }
 
             $answers[$field['name']] = $value;
@@ -159,7 +161,7 @@ class ContactSubmissionController
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             throw ValidationException::withMessages([
-                'contact-form' => __('Too many submissions. Please try again later.'),
+                'contact-form' => __('contact-form::messages.form.throttled'),
             ]);
         }
 

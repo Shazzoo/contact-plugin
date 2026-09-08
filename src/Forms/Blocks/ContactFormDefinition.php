@@ -16,14 +16,14 @@ final class ContactFormDefinition
     public static function definition(): BlockDefinition
     {
         return BlockDefinition::make('contact-form.contact-form')
-            ->label('Contact form')
-            ->description('The form configured under Contact Plugin. Set the heading here.')
+            ->label(__('contact-form::messages.block.label'))
+            ->description(__('contact-form::messages.block.description'))
             ->group('Plugins')
             ->icon('heroicon-o-envelope')
             ->schema([
-                TextInput::make('eyebrow')->label('Eyebrow')->columnSpan(12),
-                TextInput::make('heading')->label('Heading')->default('Neem contact op')->columnSpan(12),
-                TextareaField::make('lede')->label('Lede')->rows(3)->columnSpan(12),
+                TextInput::make('eyebrow')->label(__('contact-form::messages.block.eyebrow'))->columnSpan(12),
+                TextInput::make('heading')->label(__('contact-form::messages.block.heading'))->default(__('contact-form::messages.block.heading_default'))->columnSpan(12),
+                TextareaField::make('lede')->label(__('contact-form::messages.block.lede'))->rows(3)->columnSpan(12),
             ]);
     }
 }

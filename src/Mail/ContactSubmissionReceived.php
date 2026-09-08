@@ -31,7 +31,7 @@ class ContactSubmissionReceived extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        $prefix = trim((string) ($this->subjectPrefix ?: __('Contact form')));
+        $prefix = trim((string) ($this->subjectPrefix ?: __('contact-form::messages.mail.subject')));
         $subject = $this->submission->subject
             ? $prefix.': '.$this->submission->subject
             : $prefix;

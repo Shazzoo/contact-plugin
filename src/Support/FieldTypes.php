@@ -30,28 +30,25 @@ final class FieldTypes
     /** @return array<string, string> */
     public static function options(): array
     {
-        return [
-            self::TEXT => 'Tekst',
-            self::EMAIL => 'E-mail',
-            self::TEL => 'Telefoon',
-            self::URL => 'URL',
-            self::NUMBER => 'Getal',
-            self::DATE => 'Datum',
-            self::TEXTAREA => 'Tekstvak',
-            self::SELECT => 'Keuzelijst',
-            self::CHECKBOX => 'Aanvinkvakje',
-        ];
+        $options = [];
+
+        foreach ([self::TEXT, self::EMAIL, self::TEL, self::URL, self::NUMBER, self::DATE, self::TEXTAREA, self::SELECT, self::CHECKBOX] as $type) {
+            $options[$type] = (string) __('contact-form::messages.types.'.$type);
+        }
+
+        return $options;
     }
 
     /** @return array<string, string> */
     public static function roleOptions(): array
     {
-        return [
-            'none' => 'Geen',
-            'name' => 'Naam van de afzender',
-            'email' => 'E-mail van de afzender',
-            'subject' => 'Onderwerp',
-        ];
+        $options = [];
+
+        foreach (['none', 'name', 'email', 'subject'] as $role) {
+            $options[$role] = (string) __('contact-form::messages.roles.'.$role);
+        }
+
+        return $options;
     }
 
     /**
