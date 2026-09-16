@@ -16,7 +16,7 @@ return [
         'success' => 'Bedankt voor je bericht. We nemen zo snel mogelijk contact op.',
         'choose' => 'Maak een keuze...',
         'honeypot' => 'Laat dit veld leeg',
-        'not_configured' => 'Er zijn nog geen velden ingesteld. Stel ze in onder Contact Plugin.',
+        'not_configured' => 'Dit blok heeft nog geen formulier. Maak er een onder Plugins en kies het hier.',
         'throttled' => 'Te veel inzendingen. Probeer het later opnieuw.',
         'yes' => 'Ja',
         'no' => 'Nee',
@@ -56,7 +56,9 @@ return [
 
     'block' => [
         'label' => 'Contactformulier',
-        'description' => 'Het formulier dat onder Contact Plugin is ingesteld. Stel hier de kop in.',
+        'form' => 'Formulier',
+        'form_hint' => 'Welk van de formulieren onder Plugins dit blok toont.',
+        'description' => 'Een van de formulieren onder Plugins. Kies welk, en stel hier de tekst eromheen in.',
         'eyebrow' => 'Bovenkop',
         'heading' => 'Kop',
         'heading_default' => 'Neem contact op',
@@ -65,11 +67,18 @@ return [
 
     'admin' => [
         'group' => 'Contact Plugin',
+        'plugins_group' => 'Plugins',
+        'forms' => [
+            'nav' => 'Formulieren',
+            'label' => 'Formulier',
+            'plural' => 'Formulieren',
+            'identity' => 'Het formulier',
+            'identity_hint' => 'Waaraan je dit formulier herkent, en waar een blok naar wijst.',
+            'name' => 'Naam',
+            'key' => 'Sleutel',
+            'key_hint' => 'Wordt opgeslagen in een geplaatst blok. Wijzig dit niet meer als het formulier op een pagina staat.',
+        ],
         'settings' => [
-            'nav' => 'Formulier',
-            'title' => 'Contactformulier',
-            'saved' => 'Contactformulier opgeslagen',
-            'save' => 'Opslaan',
             'restore' => 'Standaardvelden terugzetten',
             'delivery' => 'Verzending',
             'delivery_hint' => 'Waar een inzending naartoe gaat en wat de bezoeker daarna ziet.',
@@ -100,6 +109,7 @@ return [
         ],
         'submissions' => [
             'nav' => 'Inzendingen',
+            'form' => 'Formulier',
             'label' => 'Inzending',
             'plural' => 'Inzendingen',
             'answers' => 'Antwoorden',

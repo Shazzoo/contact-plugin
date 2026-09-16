@@ -5,6 +5,7 @@ namespace Shazzoo\ContactForm\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContactSubmission extends Model
 {
@@ -13,6 +14,7 @@ class ContactSubmission extends Model
     protected $table = 'contact_submissions';
 
     protected $fillable = [
+        'contact_form_id',
         'data',
         'name',
         'email',
@@ -29,6 +31,11 @@ class ContactSubmission extends Model
             'data' => 'array',
             'read_at' => 'datetime',
         ];
+    }
+
+    public function contactForm(): BelongsTo
+    {
+        return $this->belongsTo(ContactForm::class);
     }
 
     /**

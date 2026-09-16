@@ -8,9 +8,9 @@ use Filament\Infolists;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Shazzoo\ContactForm\Filament\Resources\ContactSubmissionResource\Pages;
-use Shazzoo\ContactForm\Models\ContactFormSetting;
 use Shazzoo\ContactForm\Models\ContactSubmission;
 
 class ContactSubmissionResource extends Resource
@@ -55,10 +55,11 @@ class ContactSubmissionResource extends Resource
                 ->keyLabel(__('contact-form::messages.admin.submissions.answer_field'))
                 ->valueLabel(__('contact-form::messages.admin.submissions.answer_value'))
                 ->state(fn (ContactSubmission $record): array => $record->labelledAnswers(
-                    ContactFormSetting::singleton()->usableFields(),
+                    $record->contactForm?->usableFields() ?? [],
                 ))
                 ->columnSpanFull(),
 
+            Infolists\Components\TextEntry::make('contactForm.name')->label(__('contact-form::messages.admin.submissions.form'))->placeholder('—'),
             Infolists\Components\TextEntry::make('page_url')->label(__('contact-form::messages.admin.submissions.page'))->placeholder('—')->columnSpanFull(),
             Infolists\Components\TextEntry::make('locale')->label(__('contact-form::messages.admin.submissions.locale'))->placeholder('—'),
             Infolists\Components\TextEntry::make('ip_address')->label(__('contact-form::messages.admin.submissions.ip'))->placeholder('—'),
@@ -69,9 +70,15 @@ class ContactSubmissionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('contactForm'))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')->label(__('contact-form::messages.admin.submissions.received'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('contactForm.name')
+                    ->label(__('contact-form::messages.admin.submissions.form'))
+                    ->badge()
+                    ->sortable()
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('name')->label(__('contact-form::messages.admin.submissions.name'))->searchable()->sortable()->placeholder('—'),
                 Tables\Columns\TextColumn::make('email')->label(__('contact-form::messages.admin.submissions.email'))->searchable()->placeholder('—'),
                 Tables\Columns\TextColumn::make('subject')->label(__('contact-form::messages.admin.submissions.subject'))->searchable()->limit(40)->placeholder('—'),
@@ -83,8 +90,13 @@ class ContactSubmissionResource extends Resource
                     ->limit(60)
                     ->wrap()
                     ->state(fn (ContactSubmission $record): string => collect($record->labelledAnswers(
-                        ContactFormSetting::singleton()->usableFields(),
+                        $record->contactForm?->usableFields() ?? [],
                     ))->map(fn ($value, $label): string => $label.': '.$value)->implode(' · ')),
+            ])
+            ->filters([
+                SelectFilter::make('contact_form_id')
+                    ->label(__('contact-form::messages.admin.submissions.form'))
+                    ->relationship('contactForm', 'name'),
             ])
             ->actions([
                 ViewAction::make(),

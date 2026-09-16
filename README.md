@@ -1,20 +1,28 @@
 # Contact Plugin
 
-A Content Studio plugin that adds a **Contact form** block. The form itself is
-configured in the admin under **Contact Plugin → Formulier**: the fields, the
-recipient, the button label and the confirmation message. The block only carries
-the surrounding copy, so every placement stays in step.
+A Content Studio plugin that adds a **Contact form** block.
 
-Submissions are stored in `contact_submissions` and listed under
-**Contact Plugin → Inzendingen**.
+Forms are built in the admin under **Plugins → Formulieren**: as many as the
+site needs, each with its own fields, recipient, button label and confirmation
+message. A block picks one of them and carries the copy around it, so the same
+form can stand on several pages and two blocks on one page can show two
+different forms.
+
+Submissions are stored in `contact_submissions`, attributed to the form they
+came from, and listed under **Contact Plugin → Inzendingen**.
 
 ## Install
 
 1. Activate "Contact Plugin" under Plugins in the admin.
 2. Run `php artisan migrate` (the plugin ships its own migrations).
-3. Open **Contact Plugin → Formulier** and set the recipient. Without one, the
-   `CONTACT_FORM_RECIPIENT` from `.env` is used; without either, submissions are
-   stored but nothing is mailed.
+3. Open **Plugins → Formulieren**, create a form and set the recipient. Without
+   one, the `CONTACT_FORM_RECIPIENT` from `.env` is used; without either,
+   submissions are stored but nothing is mailed.
+4. Place a **Contact form** block on a page and choose the form.
+
+A form has a **key** next to its name. That is what a placed block stores, so
+renaming the key orphans the blocks pointing at it — they fall back to the
+oldest form. The name can be changed freely.
 
 ## Fields
 
@@ -26,6 +34,15 @@ else is stored in the `data` payload.
 
 The key is what a submission is stored under; renaming it leaves older
 submissions showing the old key.
+
+## Blocks
+
+The block has a form picker, an eyebrow, a heading and a lede. Everything else
+— the fields, the button, the thank-you message, the privacy text — belongs to
+the form, so it stays in step across every page the form is on.
+
+Deleting a form leaves its submissions in place, without a form to link to; a
+block that pointed at it falls back to the oldest form.
 
 ## Options
 
@@ -84,6 +101,11 @@ php artisan vendor:publish --tag=contact-form-views
 Every input renders through `contact-form::fields.<type>` and all CSS lives in
 `partials/styles.blade.php`, so a single field type or the whole look can be
 replaced without forking the plugin.
+
+Views published before forms became plural need two edits: the block view gets
+its form as `$form` instead of `$settings`, and the `<form>` needs the hidden
+`form` input carrying `$form->key` — without it the submission cannot tell
+which form it came from.
 
 ## License
 

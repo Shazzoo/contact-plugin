@@ -23,7 +23,7 @@ return [
         'success' => 'Thanks for your message. We will get back to you as soon as possible.',
         'choose' => 'Choose...',
         'honeypot' => 'Leave this field empty',
-        'not_configured' => 'No form fields configured yet. Set them up under Contact Plugin.',
+        'not_configured' => 'This block has no form yet. Create one under Plugins and pick it here.',
         'throttled' => 'Too many submissions. Please try again later.',
         'yes' => 'Yes',
         'no' => 'No',
@@ -68,7 +68,9 @@ return [
     // The block as it appears in the page editor.
     'block' => [
         'label' => 'Contact form',
-        'description' => 'The form configured under Contact Plugin. Set the heading here.',
+        'form' => 'Form',
+        'form_hint' => 'Which of the forms configured under Plugins this block shows.',
+        'description' => 'One of the forms configured under Plugins. Pick which, and set the copy around it here.',
         'eyebrow' => 'Eyebrow',
         'heading' => 'Heading',
         'heading_default' => 'Get in touch',
@@ -78,11 +80,18 @@ return [
     // The admin: the settings page and the submissions list.
     'admin' => [
         'group' => 'Contact Plugin',
+        'plugins_group' => 'Plugins',
+        'forms' => [
+            'nav' => 'Contact forms',
+            'label' => 'Contact form',
+            'plural' => 'Contact forms',
+            'identity' => 'The form',
+            'identity_hint' => 'How you recognise this form, and what a block points at.',
+            'name' => 'Name',
+            'key' => 'Key',
+            'key_hint' => 'What a placed block stores. Do not change it once the form is in use on a page.',
+        ],
         'settings' => [
-            'nav' => 'Form',
-            'title' => 'Contact form',
-            'saved' => 'Contact form saved',
-            'save' => 'Save',
             'restore' => 'Restore default fields',
             'delivery' => 'Delivery',
             'delivery_hint' => 'Where a submission goes and what the visitor sees afterwards.',
@@ -113,6 +122,7 @@ return [
         ],
         'submissions' => [
             'nav' => 'Submissions',
+            'form' => 'Form',
             'label' => 'Submission',
             'plural' => 'Submissions',
             'answers' => 'Answers',

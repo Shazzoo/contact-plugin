@@ -16,7 +16,7 @@ return [
         'success' => 'Danke für Ihre Nachricht. Wir melden uns so schnell wie möglich.',
         'choose' => 'Bitte wählen...',
         'honeypot' => 'Dieses Feld leer lassen',
-        'not_configured' => 'Es sind noch keine Felder eingerichtet. Richten Sie sie unter Contact Plugin ein.',
+        'not_configured' => 'Dieser Block hat noch kein Formular. Legen Sie eines unter Plugins an und wählen Sie es hier.',
         'throttled' => 'Zu viele Einsendungen. Bitte versuchen Sie es später erneut.',
         'yes' => 'Ja',
         'no' => 'Nein',
@@ -56,7 +56,9 @@ return [
 
     'block' => [
         'label' => 'Kontaktformular',
-        'description' => 'Das unter Contact Plugin eingerichtete Formular. Die Überschrift wird hier gesetzt.',
+        'form' => 'Formular',
+        'form_hint' => 'Welches der unter Plugins eingerichteten Formulare dieser Block zeigt.',
+        'description' => 'Eines der unter Plugins eingerichteten Formulare. Wählen Sie welches, und setzen Sie hier den Text darum.',
         'eyebrow' => 'Dachzeile',
         'heading' => 'Überschrift',
         'heading_default' => 'Kontakt aufnehmen',
@@ -65,11 +67,18 @@ return [
 
     'admin' => [
         'group' => 'Contact Plugin',
+        'plugins_group' => 'Plugins',
+        'forms' => [
+            'nav' => 'Formulare',
+            'label' => 'Formular',
+            'plural' => 'Formulare',
+            'identity' => 'Das Formular',
+            'identity_hint' => 'Woran Sie dieses Formular erkennen und worauf ein Block verweist.',
+            'name' => 'Name',
+            'key' => 'Schlüssel',
+            'key_hint' => 'Wird im platzierten Block gespeichert. Nicht mehr ändern, sobald das Formular auf einer Seite steht.',
+        ],
         'settings' => [
-            'nav' => 'Formular',
-            'title' => 'Kontaktformular',
-            'saved' => 'Kontaktformular gespeichert',
-            'save' => 'Speichern',
             'restore' => 'Standardfelder wiederherstellen',
             'delivery' => 'Versand',
             'delivery_hint' => 'Wohin eine Einsendung geht und was der Besucher danach sieht.',
@@ -100,6 +109,7 @@ return [
         ],
         'submissions' => [
             'nav' => 'Einsendungen',
+            'form' => 'Formular',
             'label' => 'Einsendung',
             'plural' => 'Einsendungen',
             'answers' => 'Antworten',

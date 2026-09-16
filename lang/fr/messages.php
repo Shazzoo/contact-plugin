@@ -16,7 +16,7 @@ return [
         'success' => 'Merci pour votre message. Nous vous répondrons dès que possible.',
         'choose' => 'Choisissez...',
         'honeypot' => 'Laissez ce champ vide',
-        'not_configured' => "Aucun champ n'est encore configuré. Configurez-les sous Contact Plugin.",
+        'not_configured' => "Ce bloc n'a pas encore de formulaire. Créez-en un sous Plugins et choisissez-le ici.",
         'throttled' => 'Trop d\'envois. Veuillez réessayer plus tard.',
         'yes' => 'Oui',
         'no' => 'Non',
@@ -56,7 +56,9 @@ return [
 
     'block' => [
         'label' => 'Formulaire de contact',
-        'description' => 'Le formulaire configuré sous Contact Plugin. Le titre se règle ici.',
+        'form' => 'Formulaire',
+        'form_hint' => 'Lequel des formulaires configurés sous Plugins ce bloc affiche.',
+        'description' => "L'un des formulaires configurés sous Plugins. Choisissez lequel, et réglez ici le texte autour.",
         'eyebrow' => 'Surtitre',
         'heading' => 'Titre',
         'heading_default' => 'Contactez-nous',
@@ -65,11 +67,18 @@ return [
 
     'admin' => [
         'group' => 'Contact Plugin',
+        'plugins_group' => 'Plugins',
+        'forms' => [
+            'nav' => 'Formulaires',
+            'label' => 'Formulaire',
+            'plural' => 'Formulaires',
+            'identity' => 'Le formulaire',
+            'identity_hint' => 'À quoi vous reconnaissez ce formulaire, et ce vers quoi pointe un bloc.',
+            'name' => 'Nom',
+            'key' => 'Clé',
+            'key_hint' => 'Enregistrée dans le bloc placé. Ne la modifiez plus une fois le formulaire présent sur une page.',
+        ],
         'settings' => [
-            'nav' => 'Formulaire',
-            'title' => 'Formulaire de contact',
-            'saved' => 'Formulaire de contact enregistré',
-            'save' => 'Enregistrer',
             'restore' => 'Rétablir les champs par défaut',
             'delivery' => 'Envoi',
             'delivery_hint' => 'Où va un envoi et ce que le visiteur voit ensuite.',
@@ -100,6 +109,7 @@ return [
         ],
         'submissions' => [
             'nav' => 'Envois',
+            'form' => 'Formulaire',
             'label' => 'Envoi',
             'plural' => 'Envois',
             'answers' => 'Réponses',

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Shazzoo\ContactForm\Mail\ContactSubmissionReceived;
-use Shazzoo\ContactForm\Models\ContactFormSetting;
+use Shazzoo\ContactForm\Models\ContactForm;
 use Shazzoo\ContactForm\Models\ContactSubmission;
 use Shazzoo\ContactForm\Support\FieldTypes;
 
@@ -18,11 +18,17 @@ class ContactSubmissionController
     {
         $this->ensureNotRateLimited($request);
 
-        $settings = ContactFormSetting::singleton();
-        $fields = $settings->usableFields();
+        // Welk formulier is ingezonden: de velden en de ontvanger verschillen
+        // per formulier, dus staat dat vast voordat er iets gevalideerd wordt.
+        $form = ContactForm::forKey($request->string('form')->toString());
+
+        abort_if($form === null, 404);
+
+        $fields = $form->usableFields();
 
         $validated = $request->validate(
             [
+                'form' => ['nullable', 'string', 'max:255'],
                 'form_id' => ['nullable', 'string', 'max:255'],
                 /** Honeypot: only a bot fills a field that is hidden from people. */
                 'website' => ['prohibited'],
@@ -35,10 +41,11 @@ class ContactSubmissionController
         $answers = $this->answers($fields, $validated);
 
         $submission = ContactSubmission::create([
+            'contact_form_id' => $form->getKey(),
             'data' => $answers,
-            'name' => $this->valueForRole($settings, $answers, 'name'),
-            'email' => $this->valueForRole($settings, $answers, 'email'),
-            'subject' => $this->valueForRole($settings, $answers, 'subject'),
+            'name' => $this->valueForRole($form, $answers, 'name'),
+            'email' => $this->valueForRole($form, $answers, 'email'),
+            'subject' => $this->valueForRole($form, $answers, 'subject'),
             'page_url' => $request->headers->get('referer'),
             'locale' => app()->getLocale(),
             // Alleen als de site het bewust aanzet: een IP-adres is
@@ -46,10 +53,10 @@ class ContactSubmissionController
             'ip_address' => config('contact-form.store_ip') ? $request->ip() : null,
         ]);
 
-        $recipient = $this->recipient($settings);
+        $recipient = $this->recipient($form);
 
         if ($recipient !== null) {
-            Mail::to($recipient)->send(new ContactSubmissionReceived($submission, $fields, $settings->subject_prefix));
+            Mail::to($recipient)->send(new ContactSubmissionReceived($submission, $fields, $form->subject_prefix));
         }
 
         return back()
@@ -130,9 +137,9 @@ class ContactSubmissionController
     /**
      * @param  array<string, mixed>  $answers
      */
-    private function valueForRole(ContactFormSetting $settings, array $answers, string $role): ?string
+    private function valueForRole(ContactForm $form, array $answers, string $role): ?string
     {
-        $field = $settings->fieldWithRole($role);
+        $field = $form->fieldWithRole($role);
 
         if ($field === null) {
             return null;
@@ -143,9 +150,9 @@ class ContactSubmissionController
         return is_string($value) && $value !== '' ? $value : null;
     }
 
-    private function recipient(ContactFormSetting $settings): ?string
+    private function recipient(ContactForm $form): ?string
     {
-        foreach ([$settings->recipient, config('contact-form.recipient')] as $candidate) {
+        foreach ([$form->recipient, config('contact-form.recipient')] as $candidate) {
             if (is_string($candidate) && filter_var($candidate, FILTER_VALIDATE_EMAIL)) {
                 return $candidate;
             }

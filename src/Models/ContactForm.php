@@ -3,12 +3,15 @@
 namespace Shazzoo\ContactForm\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ContactFormSetting extends Model
+class ContactForm extends Model
 {
-    protected $table = 'contact_form_settings';
+    protected $table = 'contact_forms';
 
     protected $fillable = [
+        'name',
+        'key',
         'recipient',
         'subject_prefix',
         'button_label',
@@ -21,19 +24,36 @@ class ContactFormSetting extends Model
         'fields' => 'array',
     ];
 
-    public static function singleton(): self
+    public function submissions(): HasMany
     {
-        // Leeg gelaten: de vertaling van de actieve taal is de terugval bij
-        // het renderen, dus een lege waarde volgt de taal van de bezoeker mee
-        // tot iemand in de admin eigen tekst invult.
-        return static::query()->firstOrCreate([], [
-            'fields' => self::defaultFields(),
-        ]);
+        return $this->hasMany(ContactSubmission::class);
     }
 
     /**
-     * The form every site starts with. Editable in the admin from the first
-     * visit, so nothing here is load-bearing beyond the initial fill.
+     * The form a block points at, falling back to the oldest one: a block
+     * placed before this form was deleted -- or before there was anything to
+     * choose -- still renders instead of leaving a hole in the page.
+     */
+    public static function forKey(?string $key): ?self
+    {
+        return (($key !== null && $key !== '')
+            ? static::query()->where('key', $key)->first()
+            : null) ?? static::query()->oldest('id')->first();
+    }
+
+    /**
+     * The forms to choose from in the block, keyed by what is stored.
+     *
+     * @return array<string, string>
+     */
+    public static function options(): array
+    {
+        return static::query()->orderBy('name')->pluck('name', 'key')->all();
+    }
+
+    /**
+     * The form a site starts with. Editable in the admin from the first visit,
+     * so nothing here is load-bearing beyond the initial fill.
      *
      * @return array<int, array<string, mixed>>
      */

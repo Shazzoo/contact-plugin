@@ -29,14 +29,14 @@
         @endif
 
         @if ($succeeded)
-            <p class="cf-success">{{ $settings->success_message ?: __('contact-form::messages.form.success') }}</p>
+            <p class="cf-success">{{ $form?->success_message ?: __('contact-form::messages.form.success') }}</p>
         @endif
 
         @error('contact-form')
             <p class="cf-error cf-error-form">{{ $message }}</p>
         @enderror
 
-        @if (empty($fields))
+        @if ($form === null || empty($fields))
             {{-- Niets te tonen zolang er geen velden ingesteld zijn. --}}
             @if (auth()->check())
                 <p class="cf-note">{{ __('contact-form::messages.form.not_configured') }}</p>
@@ -44,6 +44,9 @@
         @else
             <form class="cf-form" method="POST" action="{{ route('contact-form.submit') }}">
                 @csrf
+                {{-- Welk formulier is ingezonden, en waar het bedanktbericht
+                     en het anker naartoe moeten. --}}
+                <input type="hidden" name="form" value="{{ $form->key }}">
                 <input type="hidden" name="form_id" value="{{ $formId }}">
 
                 <div class="cf-honeypot" aria-hidden="true">
@@ -79,11 +82,11 @@
                     @endforeach
                 </div>
 
-                @if ($settings->privacy_note)
-                    <p class="cf-note">{{ $settings->privacy_note }}</p>
+                @if ($form->privacy_note)
+                    <p class="cf-note">{{ $form->privacy_note }}</p>
                 @endif
 
-                <button class="cf-button" type="submit">{{ $settings->button_label ?: __('contact-form::messages.form.send') }}</button>
+                <button class="cf-button" type="submit">{{ $form->button_label ?: __('contact-form::messages.form.send') }}</button>
             </form>
         @endif
     </div>
